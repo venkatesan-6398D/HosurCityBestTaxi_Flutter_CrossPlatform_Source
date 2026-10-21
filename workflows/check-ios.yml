@@ -1,0 +1,34 @@
+name: Check iOS builds (unsigned)
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [ "main" ]
+
+jobs:
+  check-ios:
+    runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+          cache: true
+
+      - name: Create customer Flutter project
+        run: flutter create --platforms=ios --org com.hosurcitybesttaxi customer-build
+      - name: Apply customer source and compile iOS
+        run: |
+          cp customer-app/lib/main.dart customer-build/lib/main.dart
+          cd customer-build
+          flutter pub get
+          flutter build ios --no-codesign
+
+      - name: Create driver Flutter project
+        run: flutter create --platforms=ios --org com.hosurcitybesttaxi driver-build
+      - name: Apply driver source and compile iOS
+        run: |
+          cp driver-app/lib/main.dart driver-build/lib/main.dart
+          cd driver-build
+          flutter pub get
+          flutter build ios --no-codesign
