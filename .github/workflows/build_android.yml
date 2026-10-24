@@ -69,13 +69,14 @@ jobs:
             --dart-define=SUPABASE_PUBLISHABLE_KEY="$SUPABASE_PUBLISHABLE_KEY"
 
       # COLLECT APK AND AAB FILES
+     
       - name: Collect release builds
         run: |
           mkdir -p output
-          cp customer-build/build/app/outputs/flutter-apk/app-release.apk output/customer-app-release.apk
-          cp customer-build/build/app/outputs/bundle/release/app-release.aab output/customer-app-release.aab
-          cp driver-build/build/app/outputs/flutter-apk/app-release.apk output/driver-app-release.apk
-          cp driver-build/build/app/outputs/bundle/release/app-release.aab output/driver-app-release.aab
+          cp customer_build/build/app/outputs/flutter-apk/app-release.apk output/customer-app-release.apk
+          cp customer_build/build/app/outputs/bundle/release/app-release.aab output/customer-app-release.aab
+          cp driver_build/build/app/outputs/flutter-apk/app-release.apk output/driver-app-release.apk
+          cp driver_build/build/app/outputs/bundle/release/app-release.aab output/driver-app-release.aab
 
       - name: Upload Android builds
         uses: actions/upload-artifact@v4
