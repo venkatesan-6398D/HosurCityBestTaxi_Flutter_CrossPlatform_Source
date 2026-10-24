@@ -7,7 +7,7 @@ on:
     branches: ["main"]
 
 jobs:
-  build-android:
+  build_android:
     runs-on: ubuntu-latest
 
     env:
@@ -26,17 +26,17 @@ jobs:
 
       # CUSTOMER APP
       - name: Create customer Flutter project
-        run: flutter create --platforms=android --org com.hosurcitybesttaxi customer-build
+        run: flutter create --platforms=android --org com.hosurcitybesttaxi customer_build
 
       - name: Apply customer source
-        run: cp customer-app/lib/main.dart customer-build/lib/main.dart
+        run: cp customer-app/lib/main.dart customer_build/lib/main.dart
 
       - name: Add Supabase package to customer app
-        working-directory: customer-build
+        working-directory: customer_build
         run: flutter pub add supabase_flutter
 
       - name: Build customer APK and AAB
-        working-directory: customer-build
+        working-directory: customer_build
         run: |
           flutter pub get
           flutter build apk --release \
@@ -48,17 +48,17 @@ jobs:
 
       # DRIVER APP
       - name: Create driver Flutter project
-        run: flutter create --platforms=android --org com.hosurcitybesttaxi driver-build
+        run: flutter create --platforms=android --org com.hosurcitybesttaxi driver_build
 
       - name: Apply driver source
-        run: cp driver-app/lib/main.dart driver-build/lib/main.dart
+        run: cp driver-app/lib/main.dart driver_build/lib/main.dart
 
       - name: Add Supabase package to driver app
-        working-directory: driver-build
+        working-directory: driver_build
         run: flutter pub add supabase_flutter
 
       - name: Build driver APK and AAB
-        working-directory: driver-build
+        working-directory: driver_build
         run: |
           flutter pub get
           flutter build apk --release \
@@ -80,7 +80,7 @@ jobs:
       - name: Upload Android builds
         uses: actions/upload-artifact@v4
         with:
-          name: taxi-android-builds
+          name: taxi-android_builds
           path: output/*
           if-no-files-found: error
           retention-days: 14
