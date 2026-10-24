@@ -1,42 +1,74 @@
+
 name: Build Android Apps
 
 on:
   workflow_dispatch:
   push:
-    branches: [ "main" ]
+    branches: ["main"]
 
 jobs:
   build-android:
     runs-on: ubuntu-latest
+
+    env:
+      SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+      SUPABASE_PUBLISHABLE_KEY: ${{ secrets.SUPABASE_PUBLISHABLE_KEY }}
+
     steps:
-      - uses: actions/checkout@v4
-      - uses: subosito/flutter-action@v2
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Flutter
+        uses: subosito/flutter-action@v2
         with:
           channel: stable
           cache: true
 
-      - name: Create Flutter customer project scaffold
+      # CUSTOMER APP
+      - name: Create customer Flutter project
         run: flutter create --platforms=android --org com.hosurcitybesttaxi customer-build
-      - name: Apply customer app source
+
+      - name: Apply customer source
         run: cp customer-app/lib/main.dart customer-build/lib/main.dart
+
+      - name: Add Supabase package to customer app
+        working-directory: customer-build
+        run: flutter pub add supabase_flutter
+
       - name: Build customer APK and AAB
         working-directory: customer-build
         run: |
           flutter pub get
-          flutter build apk --release
-          flutter build appbundle --release
+          flutter build apk --release \
+            --dart-define=SUPABASE_URL="$SUPABASE_URL" \
+            --dart-define=SUPABASE_PUBLISHABLE_KEY="$SUPABASE_PUBLISHABLE_KEY"
+          flutter build appbundle --release \
+            --dart-define=SUPABASE_URL="$SUPABASE_URL" \
+            --dart-define=SUPABASE_PUBLISHABLE_KEY="$SUPABASE_PUBLISHABLE_KEY"
 
-      - name: Create Flutter driver project scaffold
+      # DRIVER APP
+      - name: Create driver Flutter project
         run: flutter create --platforms=android --org com.hosurcitybesttaxi driver-build
-      - name: Apply driver app source
+
+      - name: Apply driver source
         run: cp driver-app/lib/main.dart driver-build/lib/main.dart
+
+      - name: Add Supabase package to driver app
+        working-directory: driver-build
+        run: flutter pub add supabase_flutter
+
       - name: Build driver APK and AAB
         working-directory: driver-build
         run: |
           flutter pub get
-          flutter build apk --release
-          flutter build appbundle --release
+          flutter build apk --release \
+            --dart-define=SUPABASE_URL="$SUPABASE_URL" \
+            --dart-define=SUPABASE_PUBLISHABLE_KEY="$SUPABASE_PUBLISHABLE_KEY"
+          flutter build appbundle --release \
+            --dart-define=SUPABASE_URL="$SUPABASE_URL" \
+            --dart-define=SUPABASE_PUBLISHABLE_KEY="$SUPABASE_PUBLISHABLE_KEY"
 
+      # COLLECT APK AND AAB FILES
       - name: Collect release builds
         run: |
           mkdir -p output
@@ -45,7 +77,8 @@ jobs:
           cp driver-build/build/app/outputs/flutter-apk/app-release.apk output/driver-app-release.apk
           cp driver-build/build/app/outputs/bundle/release/app-release.aab output/driver-app-release.aab
 
-      - uses: actions/upload-artifact@v4
+      - name: Upload Android builds
+        uses: actions/upload-artifact@v4
         with:
           name: taxi-android-builds
           path: output/*
