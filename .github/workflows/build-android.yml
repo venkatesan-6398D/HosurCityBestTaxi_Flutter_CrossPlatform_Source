@@ -1,0 +1,53 @@
+name: Build Android Apps
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [ "main" ]
+
+jobs:
+  build-android:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+          cache: true
+
+      - name: Create Flutter customer project scaffold
+        run: flutter create --platforms=android --org com.hosurcitybesttaxi customer-build
+      - name: Apply customer app source
+        run: cp customer-app/lib/main.dart customer-build/lib/main.dart
+      - name: Build customer APK and AAB
+        working-directory: customer-build
+        run: |
+          flutter pub get
+          flutter build apk --release
+          flutter build appbundle --release
+
+      - name: Create Flutter driver project scaffold
+        run: flutter create --platforms=android --org com.hosurcitybesttaxi driver-build
+      - name: Apply driver app source
+        run: cp driver-app/lib/main.dart driver-build/lib/main.dart
+      - name: Build driver APK and AAB
+        working-directory: driver-build
+        run: |
+          flutter pub get
+          flutter build apk --release
+          flutter build appbundle --release
+
+      - name: Collect release builds
+        run: |
+          mkdir -p output
+          cp customer-build/build/app/outputs/flutter-apk/app-release.apk output/customer-app-release.apk
+          cp customer-build/build/app/outputs/bundle/release/app-release.aab output/customer-app-release.aab
+          cp driver-build/build/app/outputs/flutter-apk/app-release.apk output/driver-app-release.apk
+          cp driver-build/build/app/outputs/bundle/release/app-release.aab output/driver-app-release.aab
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: taxi-android-builds
+          path: output/*
+          if-no-files-found: error
+          retention-days: 14
